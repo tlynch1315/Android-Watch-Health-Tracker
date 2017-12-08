@@ -23,11 +23,21 @@ public class MainActivity extends Activity implements SensorEventListener{
     Vector<Float> heartRateVals = new Vector<Float>();
     Vector<Float> stepCountVals = new Vector<Float>();
     boolean updated;
+    Float mean1 = null;
+    Float std1 = null;
+    Float mean2 = null;
+    Float std2 = null;
+    Float mean1STEP = null;
+    Float std1STEP = null;
+    Float mean2STEP = null;
+    Float std2STEP = null;
 
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        heartRateVals.removeAllElements();
+        stepCountVals.removeAllElements();
         updated = false;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -40,8 +50,15 @@ public class MainActivity extends Activity implements SensorEventListener{
         });
 
         sensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
-        stepcounter   = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
+        //stepcounter   = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE);
+        boolean hasBodySensor = sensorManager.getDefaultSensor(34, true) != null;
+        if (hasBodySensor){
+            Log.i("Has Body Sensor", "Confirmed");
+        }
+        else{
+            Log.i("Does not have", "body sensor");
+        }
         /*if (accelerometer == null){
             List<Sensor> sensors = sensorManager.getSensorList(Sensor.TYPE_ALL);
             for (Sensor sensor1 : sensors){
@@ -72,25 +89,31 @@ public class MainActivity extends Activity implements SensorEventListener{
             Log.i("HR sample size: ", Integer.toString(heartRateVals.size()));
             //}
         }
-        if (heartRateVals.size() > 100 && updated == false){
-            updated = true;
-            Log.i("Update Called", Integer.toString(heartRateVals.size()));
-            testUpdate();
+        if (heartRateVals.size() > 100 ){
+            if (checkNull()){
+                heartRateVals.removeAllElements();
+                stepCountVals.removeAllElements();
+            }
+            else {
+                //updated = true;
+                Log.i("Update Called", Integer.toString(heartRateVals.size()));
+                testUpdate();
+            }
         }
-        //updateDisplay();
-        //Log.d("FIRST VALUE", Float.toString(sensorEvent.values[0]));
-        //Log.d("Size of sample: ", Integer.toString(heartRateVals.size()));
-        /*for(float num : heartRateVals) {
-            Log.d("Values: ", Float.toString(num) );
-        }*/
-        /*acceleration.setText("X: " + sensorEvent.values[0] +
-                            "\nY: "+ sensorEvent.values[1] +
-                            "\nZ: "+ sensorEvent.values[2]);*/
-        //Log.d("AFTER SET TEXT", "Exit function");
-        //int level = batteryStatus.getIn
-
     }
 
+    public boolean checkNull(){
+        int count = 0;
+        for(int i = 0; i < heartRateVals.size(); i++){
+            if (heartRateVals.get(i) == 0){
+                count += 1;
+            }
+        }
+        if (count >= 76){
+            return true;
+        }
+        return false;
+    }
     @Override
     public void onAccuracyChanged(Sensor sensor, int i) {
 
@@ -106,22 +129,21 @@ public class MainActivity extends Activity implements SensorEventListener{
         float twentyfive, fifty, seventyfive, ninetyfive;
         Log.i("TEST", "BEFORE 25");
         int twentyfivepercent = (int)heartRateVals.size()/4;
-        Log.i("heart rate vals size", Integer.toString(heartRateVals.size()));
         Log.i("25", Integer.toString(twentyfivepercent));
         twentyfive = heartRateVals.get(twentyfivepercent);
-        Log.i("TEST", "past 25");
         fifty = heartRateVals.get((int)(heartRateVals.size()/2));
-        Log.i("TEST", "past 50");
         seventyfive = heartRateVals.get((int)((heartRateVals.size()/4) * 3));
-        Log.i("TEST", "past 75");
         ninetyfive = heartRateVals.get((int)((heartRateVals.size()/20)*19));
-        Log.i("TEST", "past 95");
+
+
         float sum = 0;
         float variance;
         for(int i = 0; i < heartRateVals.size(); i++){
-            //TODO check if 0
-            sum += (heartRateVals.get(i));
+            if (heartRateVals.get(i) != 0) {
+                sum += (heartRateVals.get(i));
+            }
         }
+
         float average = sum/heartRateVals.size();
         acceleration = (TextView)findViewById(R.id.acceleration);
         acceleration.setText(Float.toString(average));
@@ -132,12 +154,88 @@ public class MainActivity extends Activity implements SensorEventListener{
         variance = temp/(heartRateVals.size()-1);
         double a = variance;
         double std = Math.sqrt(a);
+        if (mean1 == null){
+            Log.i("mean1 ", "null");
+            mean1 = average;
+            std1 = (float) std;
+        }
+        else{
+            Log.i("mean2 ", "updated");
+            mean2 = average;
+            std2 = (float) std;
+            checkSameUser();
+        }
         Log.i("Standard Deviation", Double.toString(std));
         /*Log.i("25%: ", Integer.toString(twentyfive));
         Log.i("50%: ", Integer.toString(fifty));
         Log.i("75%: ", Integer.toString(seventyfive));
         Log.i("95%: ", Integer.toString(ninetyfive));*/
+
+        // STEP COUNTER
+        /*
+        float twentyfiveSTEP, fiftySTEP, seventyfiveSTEP, ninetyfiveSTEP;
+        Log.i("TEST", "BEFORE 25");
+        int twentyfivepercentSTEP = (int)stepCountVals.size()/4;
+        Log.i("25", Integer.toString(twentyfivepercent));
+        twentyfive = stepCountVals.get(twentyfivepercent);
+        fifty = stepCountVals.get((int)(stepCountVals.size()/2));
+        seventyfive = stepCountVals.get((int)((stepCountVals.size()/4) * 3));
+        ninetyfive = stepCountVals.get((int)((stepCountVals.size()/20)*19));
+
+
+        float sumSTEP = 0;
+        float varianceSTEP;
+        for(int i = 0; i < stepCountVals.size(); i++){
+            if (stepCountVals.get(i) != 0) {
+                sumSTEP += (stepCountVals.get(i));
+            }
+        }
+
+        float averageSTEP = sumSTEP/stepCountVals.size();
+        acceleration = (TextView)findViewById(R.id.acceleration);
+        acceleration.setText(Float.toString(averageSTEP));
+        float tempSTEP = 0;
+        for(float aSTEP : stepCountVals){
+            tempSTEP += (a-averageSTEP)*(a-averageSTEP);
+        }
+        varianceSTEP = tempSTEP/(stepCountVals.size()-1);
+        double aSTEP = varianceSTEP;
+        double stdSTEP = Math.sqrt(aSTEP);
+        if (mean1STEP == null){
+            Log.i("mean1 ", "null");
+            mean1STEP = averageSTEP;
+            std1STEP = (float) stdSTEP;
+        }
+        else{
+            Log.i("mean2 ", "updated");
+            mean2STEP = averageSTEP;
+            std2STEP = (float) stdSTEP;
+        }*/
+        Log.i("Standard Deviation", Double.toString(std));
+        /*Log.i("25%: ", Integer.toString(twentyfive));
+        Log.i("50%: ", Integer.toString(fifty));
+        Log.i("75%: ", Integer.toString(seventyfive));
+        Log.i("95%: ", Integer.toString(ninetyfive));*/
+        heartRateVals.removeAllElements();
+        stepCountVals.removeAllElements();
         return;
+
+    }
+    public void checkSameUser(){
+        Log.i("In checkSameUser", "function");
+        Float lowerBound = mean1 - std1;
+        Float upperBound = mean1 + std1;
+        if (mean2 < lowerBound || mean2 > upperBound){
+            Log.i("diff user ", "detected");
+            acceleration.setText("Different User Detected");
+            sensorManager.unregisterListener(this);
+        }
+        else{
+            Log.i("same user ", "detected");
+            acceleration.setText("Same User");
+            mean1 = mean2;
+            std1 = std2;
+        }
 
     }
 }
