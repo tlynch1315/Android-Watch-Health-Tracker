@@ -225,7 +225,17 @@ public class MainActivity extends Activity implements SensorEventListener{
         Log.i("In checkSameUser", "function");
         Float lowerBound = mean1 - std1;
         Float upperBound = mean1 + std1;
-        if (mean2 < lowerBound || mean2 > upperBound){
+        int count = 0;
+        int positive = 0;
+        for (float i : heartRateVals){
+            if (i > 0){
+                positive ++;
+            }
+            if (i >= lowerBound && i <= upperBound){
+                count ++;
+            }
+        }
+        if (count >= positive/2){
             Log.i("diff user ", "detected");
             acceleration.setText("Different User Detected");
             sensorManager.unregisterListener(this);
