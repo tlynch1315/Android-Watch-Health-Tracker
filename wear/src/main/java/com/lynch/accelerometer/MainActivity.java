@@ -138,8 +138,10 @@ public class MainActivity extends Activity implements SensorEventListener{
 
         float sum = 0;
         float variance;
+        float positive = 0;
         for(int i = 0; i < heartRateVals.size(); i++){
             if (heartRateVals.get(i) != 0) {
+                positive ++;
                 sum += (heartRateVals.get(i));
             }
         }
@@ -148,10 +150,14 @@ public class MainActivity extends Activity implements SensorEventListener{
         acceleration = (TextView)findViewById(R.id.acceleration);
         acceleration.setText(Float.toString(average));
         float temp = 0;
+        //float positive = 0;
         for(float a : heartRateVals){
+            if (a > 0){
+                positive ++;
+            }
             temp += (a-average)*(a-average);
         }
-        variance = temp/(heartRateVals.size()-1);
+        variance = temp/positive;
         double a = variance;
         double std = Math.sqrt(a);
         if (mean1 == null){
