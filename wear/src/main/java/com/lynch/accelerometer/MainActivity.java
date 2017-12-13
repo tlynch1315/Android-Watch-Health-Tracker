@@ -241,7 +241,7 @@ public class MainActivity extends Activity implements SensorEventListener{
                 count ++;
             }
         }
-        if (count >= positive/2){
+        if (count < positive/2){
             Log.i("diff user ", "detected");
             acceleration.setText("Different User Detected");
             //sensorManager.unregisterListener(this);
