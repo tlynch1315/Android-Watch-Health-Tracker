@@ -147,7 +147,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         float temp = 0;
         for(float a : heartRateVals){
             if (a > 0) {
-                positive++;
                 temp += (a - average) * (a - average);
             }
         }
